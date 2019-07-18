@@ -4,13 +4,15 @@ require("dotenv").config();
 //Variables
 var keys = require("./keys.js");
 var axios = require("axios");
+var Spotify = require("node-spotify-api");
+var spotify = new Spotify(keys.spotify);
 
-//var spotify = new Spotify(keys.spotify);
 var operator = process.argv[2];
 var pro = process.argv;
 var termRaw = [];
-var searchTerm = 0;
+var searchTerm = "";
 
+//Functions
 function terminology() {
   for (var i = 3; i < pro.length; i++) {
     termRaw.push(pro[i]);
@@ -19,17 +21,78 @@ function terminology() {
   console.log(searchTerm);
 }
 
+function terminologySpotify() {
+  for (var i = 3; i < pro.length; i++) {
+    termRaw.push(pro[i]);
+  }
+  searchTerm = termRaw.join(" ");
+  console.log(searchTerm);
+}
+
 function movies() {
   terminology();
+  if (searchTerm === "") {
+    searchTerm = "Mr.Nobody";
+  }
   var queryURL =
     "http://www.omdbapi.com/?t=" + searchTerm + "&y=&plot=short&apikey=trilogy";
   console.log(queryURL);
-  axios.get(queryURL).then(function(response) {
-    console.log(response.data.Title);
-    console.log(response.data.Year);
-    console.log(response.data.imbdRating);
-    console.log(response.data.Runtime);
+  axios.get(queryURL).then(function(err, response) {
+    if (err) {
+      return console.log("Error occurred: " + err);
+    }
+    console.log("============================");
+    console.log("Title: " + response.data.Title);
+    console.log("Year: " + response.data.Year);
+    console.log("Country: " + response.data.Country);
+    console.log("Actors/Actresses: " + response.data.Actors);
+    console.log("Plot Summary: " + response.data.Plot);
+    console.log("IMDB Rating: " + response.data.imdbRating);
+    console.log("Rotten Tomatoes Rating: " + response.data.Ratings[1].Value);
+    console.log("============================");
   });
 }
 
-movies();
+function spotifyThis() {
+  terminologySpotify();
+  spotify.search({ type: "track", query: "All the Small Things" }, function(
+    err,
+    data
+  ) {
+    if (err) {
+      return console.log("Error occurred: " + err);
+    }
+    console.log(data);
+  });
+}
+
+function concertThis() {
+  terminology();
+  var queryURL =
+    "https://rest.bandsintown.com/artists/" +
+    searchTerm +
+    "/events?app_id=codeacademy";
+  console.log(queryURL);
+  axios.get(queryURL).then(function(concert) {
+    for (var x = 0; x < concert.data.length; x++) {
+      console.log("================");
+      console.log("Venue: " + concert.data[x].venue.name);
+      console.log("Date: " + concert.data[x].datetime);
+      console.log("Country: " + concert.data[x].venue.country);
+      console.log("City: " + concert.data[x].venue.city);
+      console.log("================");
+    }
+  });
+}
+
+switch (operator) {
+  case "movie-this":
+    movies(searchTerm);
+    break;
+  case "spotify-this":
+    spotifyThis(searchTerm);
+    break;
+  case "concert-this":
+    concertThis(searchTerm);
+    break;
+}
