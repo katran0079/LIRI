@@ -35,9 +35,15 @@ function movies() {
   if (searchTerm === "") {
     searchTerm = "Mr.Nobody";
   }
-  var queryURL = "http://www.omdbapi.com/?t=" + searchTerm + "&apikey=trilogy";
+  var queryURL =
+    "http://www.omdbapi.com/?t=the+dark+knight&y=&plot=short&apikey=trilogy";
   console.log(queryURL);
-  axios.get(queryURL).then(function(response) {
+  axios.get(queryURL).then(function(error, response) {
+    if (error) {
+      console.log(response);
+      return console.log("Error occurred: " + error);
+    }
+
     console.log("============================");
     console.log("Title: " + response.data.Title);
     console.log("Year: " + response.data.Year);
